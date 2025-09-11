@@ -19,24 +19,20 @@ namespace Backend.Api.Controllers
         {
             _dbContext = dbContext;
             _httpClientFactory = httpClientFactory;
-            FetchAndStoreCatImage().Wait();
         }
 
         [HttpPost]
-        public async Task<IActionResult> FetchAndStoreCatImage()
+        public async Task<IActionResult> FetchAndStoreCatImage([FromBody] object body)
         {
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.GetAsync("https://conseil.latelier.co/data/cats.json");
-
-            if (!response.IsSuccessStatusCode)
+            if (body == null)
             {
-                return StatusCode((int)response.StatusCode, "Error while fetching Cats Images.");
+                return BadRequest("Request body is required.");
             }
 
-            var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            using var doc = JsonDocument.Parse(body.ToString() ?? "");
             var root = doc.RootElement;
 
-            if (root.ValueKind == JsonValueKind.Array && root.TryGetProperty("images", out JsonElement imagesList) && imagesList.ValueKind == JsonValueKind.Array)
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("images", out JsonElement imagesList) && imagesList.ValueKind == JsonValueKind.Array)
             {
                 foreach (var item in imagesList.EnumerateArray())
                 {
@@ -67,6 +63,13 @@ namespace Backend.Api.Controllers
             }
 
             return BadRequest("Invalid JSON Structure.");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllCats()
+        {
+            var catsList = await _dbContext.CatsImages.OrderByDescending(c => c.Score).ToListAsync();
+            return Ok(catsList);
         }
     }
 }
