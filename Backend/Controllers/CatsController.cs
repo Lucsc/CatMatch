@@ -102,5 +102,12 @@ namespace Backend.Api.Controllers
             }
             return Ok(pairCats);
         }
+
+        [HttpGet("matchesCount")]
+        public async Task<IActionResult> GetMatchesCount()
+        {
+            var count = await _dbContext.CatsImages.Where(x => x.Score > 0).Select(x => x.Score).SumAsync();
+            return Ok(new { Count = count });
+        }
     }
 }

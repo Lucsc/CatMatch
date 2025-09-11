@@ -1,17 +1,13 @@
 import { BrowserRouter, Link, Routes, Route } from 'react-router-dom'
 import Leaderboard from './Leaderboard/Leaderboard'
+import Vote from './Vote/Vote'
 
 function App() {
   return (
     <BrowserRouter>
-      <header style={{marginBottom:20}}>
-        <nav>
-          <Link to="/">Leaderboard</Link>
-        </nav>
-      </header>
-
       <Routes>
-        <Route path="/" element={<Leaderboard/>}/>
+        <Route path="/" element={<Leaderboard />} />
+        <Route path="/vote" element={<Vote />} />
       </Routes>
     </BrowserRouter>
   )

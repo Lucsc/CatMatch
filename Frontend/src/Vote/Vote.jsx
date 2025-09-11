@@ -32,13 +32,11 @@ export default function Vote() {
 
     const fetchMatchesCount = async () => {
         try {
-            const res = await fetch(`${API_URL}/cats`);
+            const res = await fetch(`${API_URL}/cats/matchesCount`);
             if (!res.ok) return;
             const data = await res.json();
-            const total = data.reduce((s, c) => s + (c.score || 0), 0);
-            setMatchesCount(total);
+            setMatchesCount(data.count);
         } catch (e) {
-            // ignore
         }
     }
 
@@ -68,11 +66,11 @@ export default function Vote() {
 
             <main className="vote-main">
                 <div className="cat-pair">
-                    {pair.map(cat => (
+                    {pair.map((cat, index) => (
                         <div key={cat.id} className="cat-card">
                             <img src={cat.url} alt={`Chat ${cat.id}`} className="cat-image"/>
                             <div className="cat-info">
-                                <div className="cat-label">Chat {cat.id}</div>
+                                <div className="cat-label">Chat Mignon {index + 1}</div>
                                 <div className="cat-score">Score : {cat.score} pts</div>
                                 <button className="like-button" onClick={(e) => { e.stopPropagation(); vote(cat.id); }}>
                                     J'aime
