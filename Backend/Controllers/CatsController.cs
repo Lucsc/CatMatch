@@ -71,5 +71,36 @@ namespace Backend.Api.Controllers
             var catsList = await _dbContext.CatsImages.OrderByDescending(c => c.Score).ToListAsync();
             return Ok(catsList);
         }
+
+        [HttpPost("vote/{winnerId}")]
+        public async Task<IActionResult> VoteCat(string winnerId)
+        {
+            if (string.IsNullOrEmpty(winnerId) || !Guid.TryParse(winnerId, out Guid catGuid))
+            {
+                return BadRequest("Invalid or missing 'winnerId'.");
+            }
+
+            var cat = await _dbContext.CatsImages.FirstOrDefaultAsync(c => c.Id == catGuid);
+            if (cat == null)
+            {
+                return NotFound("Cat not found.");
+            }
+
+            cat.Score += 1;
+            await _dbContext.SaveChangesAsync();
+
+            return Ok("Vote recorded successfully.");
+        }
+
+        [HttpGet("random")]
+        public async Task<IActionResult> GetTwoRandomsCats()
+        {
+            var pairCats = await _dbContext.CatsImages.OrderBy(c => EF.Functions.Random()).Take(2).ToListAsync();
+            if (pairCats.Count < 2)
+            {
+                return BadRequest("Not enough cat images available.");
+            }
+            return Ok(pairCats);
+        }
     }
 }
