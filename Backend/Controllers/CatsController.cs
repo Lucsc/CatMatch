@@ -21,8 +21,8 @@ namespace Backend.Api.Controllers
             _httpClientFactory = httpClientFactory;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> FetchAndStoreCatImage([FromBody] object body)
+        [HttpPost("StoreCatImage")]
+        public async Task<IActionResult> StoreCatImage([FromBody] object body)
         {
             if (body == null)
             {

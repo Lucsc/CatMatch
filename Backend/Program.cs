@@ -36,7 +36,7 @@ using (var scope = app.Services.CreateScope())
             var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             var root = doc.RootElement;
 
-            if (root.ValueKind == JsonValueKind.Array && root.TryGetProperty("images", out JsonElement imagesList) && imagesList.ValueKind == JsonValueKind.Array)
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("images", out JsonElement imagesList) && imagesList.ValueKind == JsonValueKind.Array)
             {
                 foreach (var item in imagesList.EnumerateArray())
                 {
