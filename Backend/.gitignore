@@ -1,0 +1,28 @@
+# Build
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs
+*.log
+
+# Visual Studio
+.vs/
+.vscode/
+
+# Dotnet artifacts
+*.dbmdl
+*.jfm
+
+# Database files (si SQLite en local)
+*.db
+*.sqlite
+
+# OS
+Thumbs.db
+.DS_Store
