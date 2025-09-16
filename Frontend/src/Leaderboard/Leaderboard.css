@@ -111,3 +111,23 @@
         grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     }
 }
+
+
+.leaderboard-filter{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin:18px 0;
+}
+
+.period-select{
+    border:1px solid var(--borderColor);
+    padding:8px 12px;
+    border-radius:8px;
+    font-size:14px;
+    cursor:pointer;
+}
+
+.period-select:focus{
+    border-color: var(--mainColor);
+}

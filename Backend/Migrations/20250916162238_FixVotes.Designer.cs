@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250911133953_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250916162238_FixVotes")]
+    partial class FixVotes
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -40,6 +40,27 @@ namespace Backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CatsImages");
+                });
+
+            modelBuilder.Entity("Backend.Models.Api.VoteEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("WinnerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("WinnerImageUrl")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Votes");
                 });
 #pragma warning restore 612, 618
         }

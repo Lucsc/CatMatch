@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import './Vote.css';
 import logo from '../assets/logo.png';
+import LoadingPage from "../utils/LoadingPage";
+import ErrorPage from "../utils/ErrorPage";
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -51,20 +53,19 @@ export default function Vote() {
         }
     }
 
-    if (loading) return <p>Chargement...</p>
-    if (error) return <p>{error}</p>
-    if (pair.length === 0) return <p>Il n'y a aucune image de chat disponible.</p>
+    let content;
 
-    return (
-        <div className="vote-page">
-            <header className="site-header">
-                <div className="logo">
-                    <img src={logo} alt="Cat Icon" style={{ width: '40px', height: '40px' }} />
-                    CATMASH
-                </div>
-            </header>
-
-            <main className="vote-main">
+    if (loading) {
+        content = (
+                <LoadingPage/>
+        )
+    } else if (error) {
+        content = <ErrorPage message={error} />;
+    } else if (pair.length === 0) {
+        content = <ErrorPage message="Il n'y a aucune image de chat disponible." />;
+    } else {
+        content = (
+            <>
                 <div className="cat-pair">
                     {pair.map((cat, index) => (
                         <div key={cat.id} className="cat-card">
@@ -79,6 +80,21 @@ export default function Vote() {
                         </div>
                     ))}
                 </div>
+            </>
+        );
+    }
+
+    return (
+        <div className="vote-page">
+            <header className="site-header">
+                <div className="logo">
+                    <img src={logo} alt="Cat Icon" style={{ width: '40px', height: '40px' }} />
+                    CATMASH
+                </div>
+            </header>
+
+            <main className="vote-main">
+                {content}
             </main>
 
             <footer className="site-footer">

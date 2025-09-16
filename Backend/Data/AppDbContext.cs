@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Backend.Api.Models;
+using Backend.Models.Api;
 
 namespace Backend.Api.Data
 {
@@ -7,6 +8,8 @@ namespace Backend.Api.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { } // Constructor
 
-        public DbSet<CatsEntity> CatsImages { get; set; } // DbSet for CatsEntity
+        public DbSet<CatsEntity> CatsImages { get; set; }
+
+        public DbSet<VoteEntity> Votes { get; set; }
     }
 }

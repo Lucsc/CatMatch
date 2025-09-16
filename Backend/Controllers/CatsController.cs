@@ -3,6 +3,7 @@
 using System.Text.Json;
 using Backend.Api.Data;
 using Backend.Api.Models;
+using Backend.Models.Api;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -66,10 +67,52 @@ namespace Backend.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllCats()
+        public async Task<IActionResult> GetAllCats([FromQuery] string? period)
         {
-            var catsList = await _dbContext.CatsImages.OrderByDescending(c => c.Score).ToListAsync();
-            return Ok(catsList);
+            if (period == null || period.Equals("all", StringComparison.CurrentCultureIgnoreCase))
+            {
+                var catsList = await _dbContext.CatsImages.OrderByDescending(c => c.Score).ToListAsync();
+                return Ok(catsList);
+            }
+
+            DateTime fromDate = period.ToLower() switch
+            {
+                "last hour" => DateTime.UtcNow.AddHours(-1),
+                "last day" => DateTime.UtcNow.AddDays(-1),
+                "last week" => DateTime.UtcNow.AddDays(-7),
+                "last month" => DateTime.UtcNow.AddMonths(-1),
+                "last year" => DateTime.UtcNow.AddYears(-1),
+                _ => DateTime.MinValue
+            };
+
+            var votesQuery = _dbContext.Votes.AsQueryable();
+            if (fromDate != DateTime.MinValue)
+            {
+                votesQuery = votesQuery.Where(v => v.CreatedAt >= fromDate);
+            }
+
+            var catVotes = await votesQuery
+                .GroupBy(v => v.WinnerId)
+                .Select(g => new { CatId = g.Key, Votes = g.Count() })
+                .OrderByDescending(g => g.Votes)
+                .ToListAsync();
+
+            var catIds = catVotes.Select(cv => cv.CatId).ToList();
+            var cats = await _dbContext.CatsImages.Where(c => catIds.Contains(c.Id)).ToListAsync();
+
+            var result = catVotes
+                .Join(cats, cv => cv.CatId, c => c.Id, (cv, c) => new
+                {
+                    c.Id,
+                    c.Url,
+                    c.ExternalId,
+                    c.Score,
+                    cv.Votes
+                })
+                .OrderByDescending(x => x.Votes)
+                .ToList();
+
+            return Ok(result);
         }
 
         [HttpPost("vote/{winnerId}")]
@@ -87,6 +130,13 @@ namespace Backend.Api.Controllers
             }
 
             cat.Score += 1;
+            _dbContext.Votes.Add(new VoteEntity
+            {
+                Id = Guid.NewGuid(),
+                WinnerId = cat.Id,
+                WinnerImageUrl = cat.Url,
+                CreatedAt = DateTime.UtcNow
+            });
             await _dbContext.SaveChangesAsync();
 
             return Ok("Vote recorded successfully.");
