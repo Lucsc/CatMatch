@@ -41,7 +41,7 @@
     margin-bottom: 10px;
 }
 
-.vote-main::before {
+.cat-pair::before {
     content: '';
     position: absolute;
     left: 50%;

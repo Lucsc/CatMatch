@@ -55,18 +55,11 @@ export default function Vote() {
 
     let content;
 
-    if (loading) {
-        content = (
-                <LoadingPage/>
-        )
-    } else if (error) {
-        content = <ErrorPage message={error} />;
-    } else if (pair.length === 0) {
-        content = <ErrorPage message="Il n'y a aucune image de chat disponible." />;
-    } else {
-        content = (
-            <>
-                <div className="cat-pair">
+    if (loading) content = <div><LoadingPage/></div>;
+    else if (error) content = <ErrorPage message={error} />;
+    else if (pair.length === 0) content = <ErrorPage message="Aucune paire de chats disponible." />;
+    else 
+        content = <div className="cat-pair">
                     {pair.map((cat, index) => (
                         <div key={cat.id} className="cat-card">
                             <img src={cat.url} alt={`Chat ${cat.id}`} className="cat-image"/>
@@ -80,9 +73,7 @@ export default function Vote() {
                         </div>
                     ))}
                 </div>
-            </>
-        );
-    }
+
 
     return (
         <div className="vote-page">

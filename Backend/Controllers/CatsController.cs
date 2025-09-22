@@ -98,10 +98,10 @@ namespace Backend.Api.Controllers
                 .ToListAsync();
 
             var catIds = catVotes.Select(cv => cv.CatId).ToList();
-            var cats = await _dbContext.CatsImages.Where(c => catIds.Contains(c.Id)).ToListAsync();
+            var cats = await _dbContext.CatsImages.Where(c => catIds.Contains(c.Id.ToString())).ToListAsync();
 
             var result = catVotes
-                .Join(cats, cv => cv.CatId, c => c.Id, (cv, c) => new
+                .Join(cats, cv => cv.CatId, c => c.Id.ToString(), (cv, c) => new
                 {
                     c.Id,
                     c.Url,
@@ -132,8 +132,8 @@ namespace Backend.Api.Controllers
             cat.Score += 1;
             _dbContext.Votes.Add(new VoteEntity
             {
-                Id = Guid.NewGuid(),
-                WinnerId = cat.Id,
+                Id = Guid.NewGuid().ToString(),
+                WinnerId = cat.Id.ToString(),
                 WinnerImageUrl = cat.Url,
                 CreatedAt = DateTime.UtcNow
             });
@@ -145,7 +145,7 @@ namespace Backend.Api.Controllers
         [HttpGet("random")]
         public async Task<IActionResult> GetTwoRandomsCats()
         {
-            var pairCats = await _dbContext.CatsImages.OrderBy(c => EF.Functions.Random()).Take(2).ToListAsync();
+            var pairCats = await _dbContext.CatsImages.OrderBy(c => Guid.NewGuid()).Take(2).ToListAsync();
             if (pairCats.Count < 2)
             {
                 return BadRequest("Not enough cat images available.");
