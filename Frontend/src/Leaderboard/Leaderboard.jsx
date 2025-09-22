@@ -97,6 +97,7 @@ export default function Leaderboard() {
                     <img src={logo} alt="Cat Icon" style={{ width: '40px', height: '40px' }} />
                     <span className="logo-text">CATMASH</span>
                 </div>
+                <button className="monitor-button" onClick={() => { window.location.href = '/monitor'; }}>Voir les votes en temps réel</button>
             </header>
 
             <main className="leaderboard-main">

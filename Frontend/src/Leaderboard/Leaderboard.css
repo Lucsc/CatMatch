@@ -131,3 +131,9 @@
 .period-select:focus{
     border-color: var(--mainColor);
 }
+
+.monitor-button {
+    position : fixed;
+    right : 0;
+    margin-right : 10px;
+}
