@@ -132,7 +132,9 @@ export default function Monitor() {
 
             <footer className="site-footer">
                 <div className="footer-inner">
-                    <button className="footer-button" onClick={() => window.location.href = '/'}>Voir le classement des chats</button>
+                    <Link to="/">
+                        <button className="footer-button">Voir le classement des chats</button>
+                    </Link>
                     <div className="matches-count">{eventsCounts} événements reçus</div>
                 </div>
             </footer>
