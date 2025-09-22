@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Backend.Api.Data;
 using System.Text.Json;
 using Backend.Api.Models;
+using Backend.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,8 +23,11 @@ builder.Services.AddCors(options =>
     options.AddPolicy("DefaultCors", p => p
         .WithOrigins(allowedOrigins)
         .AllowAnyHeader()
-        .AllowAnyMethod());
+        .AllowAnyMethod()
+        .AllowCredentials());
 });
+
+builder.Services.AddSignalR();
 
 // Choix DB : SQL Server si DefaultConnection est défini, sinon SQLite
 var defaultConn = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -100,5 +104,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("DefaultCors");
+
 app.MapControllers();
+
+app.MapHub<MonitoringHub>("/hubs/monitor");
+
 app.Run();
