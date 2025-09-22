@@ -5,7 +5,9 @@ using Backend.Api.Data;
 using Backend.Api.Models;
 using Backend.Models.Api;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Backend.Models;
 
 namespace Backend.Api.Controllers
 {
@@ -16,10 +18,13 @@ namespace Backend.Api.Controllers
         private readonly AppDbContext _dbContext;
         private readonly IHttpClientFactory _httpClientFactory;
 
-        public CatsController(AppDbContext dbContext, IHttpClientFactory httpClientFactory)
+        private readonly IHubContext<MonitoringHub> _hubContext;
+
+        public CatsController(AppDbContext dbContext, IHttpClientFactory httpClientFactory, IHubContext<MonitoringHub> hubContext)
         {
             _dbContext = dbContext;
             _httpClientFactory = httpClientFactory;
+            _hubContext = hubContext;
         }
 
         [HttpPost("StoreCatImage")]
@@ -139,13 +144,31 @@ namespace Backend.Api.Controllers
             });
             await _dbContext.SaveChangesAsync();
 
+            await _hubContext.Clients.All.SendAsync("MonitoringUpdate", new
+            {
+                Type = "Vote",
+                cat.Id,
+                cat.Url,
+                NewScore = cat.Score,
+                Timestamp = DateTime.UtcNow
+            });
+
             return Ok("Vote recorded successfully.");
         }
 
         [HttpGet("random")]
         public async Task<IActionResult> GetTwoRandomsCats()
         {
-            var pairCats = await _dbContext.CatsImages.OrderBy(c => Guid.NewGuid()).Take(2).ToListAsync();
+            List<CatsEntity> pairCats;
+            if (_dbContext.Database.ProviderName?.Contains("Sqlite") == true)
+            {
+                pairCats = await _dbContext.CatsImages.OrderBy(c => EF.Functions.Random()).Take(2).ToListAsync();
+            }
+            else
+            {
+                pairCats = await _dbContext.CatsImages.OrderBy(c => Guid.NewGuid()).Take(2).ToListAsync();
+            }
+
             if (pairCats.Count < 2)
             {
                 return BadRequest("Not enough cat images available.");
