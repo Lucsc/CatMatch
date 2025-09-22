@@ -10,18 +10,40 @@ builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Récupère les origines autorisées depuis config ou fallback sur localhost
+var allowedOrigins = builder.Configuration["AllowedOrigins"]?.Split(';') 
+                     ?? new[] {
+                         "http://localhost:5173",
+                          "https://cat-match-five.vercel.app"
+                        };
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("LocalDev", p => p
-        .WithOrigins("http://localhost:5173")
+    options.AddPolicy("DefaultCors", p => p
+        .WithOrigins(allowedOrigins)
         .AllowAnyHeader()
         .AllowAnyMethod());
 });
 
-builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlite("Data Source=catsImages.db"));
+// Choix DB : SQL Server si DefaultConnection est défini, sinon SQLite
+var defaultConn = builder.Configuration.GetConnectionString("DefaultConnection");
+if (!string.IsNullOrEmpty(defaultConn))
+{
+    builder.Services.AddDbContext<AppDbContext>(opt =>
+        opt.UseSqlServer(defaultConn, sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(); // tolérance aux timeouts Azure
+        }));
+}
+else
+{
+    builder.Services.AddDbContext<AppDbContext>(opt =>
+        opt.UseSqlite("Data Source=catsImages.db"));
+}
 
 var app = builder.Build();
 
+// Migration + seed au démarrage
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -36,12 +58,15 @@ using (var scope = app.Services.CreateScope())
             var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             var root = doc.RootElement;
 
-            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("images", out JsonElement imagesList) && imagesList.ValueKind == JsonValueKind.Array)
+            if (root.ValueKind == JsonValueKind.Object 
+                && root.TryGetProperty("images", out JsonElement imagesList) 
+                && imagesList.ValueKind == JsonValueKind.Array)
             {
                 foreach (var item in imagesList.EnumerateArray())
                 {
                     string? url = null;
                     string? externalId = null;
+
                     if (item.TryGetProperty("url", out var catUrl) && catUrl.ValueKind == JsonValueKind.String)
                     {
                         url = catUrl.GetString();
@@ -52,7 +77,7 @@ using (var scope = app.Services.CreateScope())
                     }
 
                     if (string.IsNullOrEmpty(url)) continue;
-                    if (await db.CatsImages.AnyAsync(c => c.Url == url)) continue; // Unique URL check
+                    if (await db.CatsImages.AnyAsync(c => c.Url == url)) continue; // éviter doublons
 
                     db.CatsImages.Add(new CatsEntity
                     {
@@ -74,6 +99,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("LocalDev");
+app.UseCors("DefaultCors");
 app.MapControllers();
 app.Run();
