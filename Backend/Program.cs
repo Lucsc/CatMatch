@@ -29,21 +29,8 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddSignalR();
 
-// Choix DB : SQL Server si DefaultConnection est défini, sinon SQLite
-var defaultConn = builder.Configuration.GetConnectionString("DefaultConnection");
-if (!string.IsNullOrEmpty(defaultConn))
-{
-    builder.Services.AddDbContext<AppDbContext>(opt =>
-        opt.UseSqlServer(defaultConn, sqlOptions =>
-        {
-            sqlOptions.EnableRetryOnFailure(); // tolérance aux timeouts Azure
-        }));
-}
-else
-{
-    builder.Services.AddDbContext<AppDbContext>(opt =>
-        opt.UseSqlite("Data Source=catsImages.db"));
-}
+builder.Services.AddDbContext<AppDbContext>(opt =>
+    opt.UseSqlite("Data Source=catsImages.db"));
 
 var app = builder.Build();
 
@@ -51,7 +38,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    db.Database.EnsureCreated();
 
     if (!db.CatsImages.Any())
     {
